@@ -8,6 +8,7 @@ const { spawnSync } = require("child_process");
 const { homedir } = require("os");
 const path = require("path");
 
+const DEFAULT_DOCKER_REPO = "softprops/lambda-rust";
 const DEFAULT_DOCKER_TAG = "0.2.4-rust-1.38.0";
 const RUST_RUNTIME = "rust";
 const BASE_RUNTIME = "provided";
@@ -36,6 +37,7 @@ class RustPlugin {
     this.custom = Object.assign(
       {
         cargoFlags: "",
+        dockerRepo: DEFAULT_DOCKER_REPO,
         dockerTag: DEFAULT_DOCKER_TAG
       },
       (this.serverless.service.custom && this.serverless.service.custom.rust) ||
@@ -80,10 +82,11 @@ class RustPlugin {
       // --features awesome-feature, ect
       customArgs.push("-e", `CARGO_FLAGS=${cargoFlags}`);
     }
+    const dockerRepo = (funcArgs || {}).dockerRepo || this.custom.dockerRepo;
     const dockerTag = (funcArgs || {}).dockerTag || this.custom.dockerTag;
     return spawnSync(
       "docker",
-      [...defaultArgs, ...customArgs, `softprops/lambda-rust:${dockerTag}`],
+      [...defaultArgs, ...customArgs, `${dockerRepo}:${dockerTag}`],
       NO_OUTPUT_CAPTURE
     );
   }
